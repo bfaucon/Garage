@@ -16,6 +16,7 @@ byte colPins[COLS] = {12, 11, 10}; //connect to the column pinouts of the keypad
 // attach keypad
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
+boolean canChange=false; // flag determining if we can change
 boolean isOpen=false; // flag determining the state of the lock
 boolean isValid=false; // flag determining the validity of an input
 char entryCode[4]={'1','4','6','4'}; // The code you need (overwritten from EEPROM)
@@ -34,7 +35,7 @@ void setup(){
 
  digitalWrite(3,LOW); // SOLENOID OFF
  digitalWrite(4,LOW); //
- digitalWrite(5,HIGH); // 4 LOW, 5 HIGH BI-COLOUR LED IS RED
+// digitalWrite(5,HIGH); // 4 LOW, 5 HIGH BI-COLOUR LED IS RED
 
 /* 
  read code from EEPROM
@@ -54,10 +55,15 @@ void loop(){
  if (t>0) t--;
  if (t<=0)
  {
-    isOpen=false;
+    canChange=false;
     digitalWrite(3,LOW); // SOLENOID OFF
     digitalWrite(4,LOW);
-    digitalWrite(5,HIGH); // 4 LOW, 5 HIGH BI-COLOUR LED IS RED
+ }
+if (t<=900000)
+ {
+    isOpen=false;
+    digitalWrite(3,LOW); // SOLENOID OFF
+ //   digitalWrite(4,LOW);
  }
 
  char key = keypad.getKey(); // get a key (if pressed)
@@ -108,26 +114,37 @@ void loop(){
  //isOpen=!isOpen;
      if(isOpen)
      {
-       digitalWrite(3,HIGH); // SOLENOID ON
+//       digitalWrite(3,HIGH); // SOLENOID ON
        digitalWrite(4,HIGH);
-       digitalWrite(5,LOW); // 4 HIGH, 5 LOW BI-COLOUR LED IS GREEN
      }
      else
      {
-       digitalWrite(3,LOW); // SOLENOID OFF
+//       digitalWrite(3,LOW); // SOLENOID OFF
        digitalWrite(4,LOW);
-       digitalWrite(5,HIGH); // 4 LOW, 5 HIGH BI-COLOUR LED IS RED
      }
- }
+
+//canChange=!canChange;
+     if(canChange)
+     {
+//       digitalWrite(3,HIGH); // SOLENOID ON
+       digitalWrite(4,HIGH);
+     }
+     else
+     {
+//       digitalWrite(3,LOW); // SOLENOID OFF
+       digitalWrite(4,LOW);
+     }
+ 
+}
  else
  { // a key other than '*' has been pressed
  /*
  lock is open and '#' pressed - store last 4 keys in eeprom as
  new lock, but only if last 4 entries are digits
  */
-     if (isOpen && key=='#')
+     if (canChange && key=='#')
      {
- // check a valid 4 digit code is in the iput buffer
+ // check a valid 4 digit code is in the input buffer
        isValid=true;
        for (i=0;i<4;i++) if(inputB[i]=='*' || inputB[i]=='#') isValid=false;
 
@@ -143,10 +160,8 @@ void loop(){
          for (i=0;i<4;i++)
          {
            digitalWrite(4,LOW);
-           digitalWrite(5,HIGH);
            delay(500);
            digitalWrite(4,HIGH);
-           digitalWrite(5,LOW);
            delay(500);
          }
      }
