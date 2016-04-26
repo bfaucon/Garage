@@ -43,6 +43,10 @@ void setup(){
 /* 
  read code from EEPROM
  IMPORTANT - initialise first otherwise you'll never get in!
+for (i=0;i<4;i++)
+         {
+           EEPROM.write(i,entryCode[i]); // write the values in the EEPROM so they stay!
+         }
 */
  for (i=0;i<4;i++)
  {
