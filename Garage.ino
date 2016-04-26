@@ -11,11 +11,14 @@ char keys[ROWS][COLS] = {
  {'*','0','#'}
 };
 // this may be different on different keypads - please check!
-byte rowPins[ROWS] = {9, 8, 7, 6}; //connect to the row pinouts of the keypad
-byte colPins[COLS] = {12, 11, 10}; //connect to the column pinouts of the keypad
+byte rowPins[ROWS] = {11, 10, 9, 8}; //connect to the row pinouts of the keypad
+byte colPins[COLS] = {7, 6, 5}; //connect to the column pinouts of the keypad
 // attach keypad
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
+int PinRelay = 3;
+int Green = 12;
+int Red = 13;
 boolean canChange=false; // flag determining if we can change
 boolean isOpen=false; // flag determining the state of the lock
 boolean isValid=false; // flag determining the validity of an input
@@ -29,12 +32,12 @@ int b;
 void setup(){
  Serial.begin(9600); // this is added for debugging - allows you to echo the keys to the computer
 
- pinMode(5,OUTPUT); //LED 1
- pinMode(4,OUTPUT); //LED 2
- pinMode(3,OUTPUT); //SOLENOID
+ //pinMode(5,OUTPUT); //LED 1
+ pinMode(Green,OUTPUT); //LED 2
+ pinMode(PinRelay,OUTPUT); //SOLENOID
 
- digitalWrite(3,LOW); // SOLENOID OFF
- digitalWrite(4,LOW); //
+ digitalWrite(PinRelay,LOW); // SOLENOID OFF
+ digitalWrite(Green,LOW); //
 // digitalWrite(5,HIGH); // 4 LOW, 5 HIGH BI-COLOUR LED IS RED
 
 /* 
@@ -53,17 +56,18 @@ void loop(){
  // t is the count-down timer. It is set when the lock is
  // open and counts down to zero, at which point the lock is closed
  if (t>0) t--;
+ //Serial.println(t);  
  if (t<=0)
  {
     canChange=false;
-    digitalWrite(3,LOW); // SOLENOID OFF
-    digitalWrite(4,LOW);
+    digitalWrite(PinRelay,LOW); // SOLENOID OFF
+    digitalWrite(Green,LOW);
  }
-if (t<=900000)
+if (t<=990000)
  {
     isOpen=false;
-    digitalWrite(3,LOW); // SOLENOID OFF
- //   digitalWrite(4,LOW);
+    digitalWrite(PinRelay,LOW); // SOLENOID OFF
+ //   digitalWrite(Green,LOW);
  }
 
  char key = keypad.getKey(); // get a key (if pressed)
@@ -84,7 +88,9 @@ if (t<=900000)
     inputB[2]==entryCode[2] &&
     inputB[3]==entryCode[3] )
     {
+       Serial.println("good code");
        isOpen=true; // code ok - set open flag true
+       canChange=true;
        inputB[0]='*'; // reset input buffer
        inputB[1]='*';
        inputB[2]='*';
@@ -96,8 +102,7 @@ if (t<=900000)
      {
        isOpen=false; // code wrong - set open flag false
        b++;
-       Serial.println("test");
-       Serial.println(b);
+       t=0;
        inputB[0]='*'; // reset input buffer
        inputB[1]='*';
        inputB[2]='*';
@@ -105,33 +110,35 @@ if (t<=900000)
        if(b==3)
        {
         Serial.println("BLOQUE");
+        digitalWrite(Red,HIGH);
         delay(10000);  
+        digitalWrite(Red,LOW);
         Serial.println("DEBLOQUE");
         b=0;
         }
      }
-
+     
  //isOpen=!isOpen;
      if(isOpen)
      {
-//       digitalWrite(3,HIGH); // SOLENOID ON
-       digitalWrite(4,HIGH);
+       digitalWrite(PinRelay,HIGH); // SOLENOID ON
+       digitalWrite(Green,HIGH);
      }
      else
      {
-//       digitalWrite(3,LOW); // SOLENOID OFF
-       digitalWrite(4,LOW);
+       digitalWrite(PinRelay,LOW); // SOLENOID OFF
+       digitalWrite(Green,LOW);
      }
 
 //canChange=!canChange;
      if(canChange)
      {
-//       digitalWrite(3,HIGH); // SOLENOID ON
+       //digitalWrite(2,HIGH); // SOLENOID ON
        digitalWrite(4,HIGH);
      }
      else
      {
-//       digitalWrite(3,LOW); // SOLENOID OFF
+       //digitalWrite(2,LOW); // SOLENOID OFF
        digitalWrite(4,LOW);
      }
  
@@ -145,6 +152,7 @@ if (t<=900000)
      if (canChange && key=='#')
      {
  // check a valid 4 digit code is in the input buffer
+       Serial.println("CHANGEMENT");
        isValid=true;
        for (i=0;i<4;i++) if(inputB[i]=='*' || inputB[i]=='#') isValid=false;
 
@@ -159,11 +167,12 @@ if (t<=900000)
  // flash LED to signal change
          for (i=0;i<4;i++)
          {
-           digitalWrite(4,LOW);
+           digitalWrite(Green,LOW);
            delay(500);
-           digitalWrite(4,HIGH);
+           digitalWrite(Green,HIGH);
            delay(500);
          }
+         t=0;
      }
  }
  else
