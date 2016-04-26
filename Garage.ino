@@ -16,10 +16,10 @@ byte colPins[COLS] = {7, 6, 5}; //connect to the column pinouts of the keypad
 // attach keypad
 Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
 
-int PinRelay = 3; // pin for Relay
-int Green = 12; // pin for Green Led
-int Red = 13; // pin for Red Led
-boolean canChange=false; // flag determining if we can change the code
+int PinRelay = 2;
+int Green = 3;
+int Red = 4;
+boolean canChange=false; // flag determining if we can change
 boolean isOpen=false; // flag determining the state of the lock
 boolean isValid=false; // flag determining the validity of an input
 char entryCode[4]={'1','4','6','4'}; // The code you need (overwritten from EEPROM)
@@ -134,12 +134,12 @@ if (t<=990000)
      if(canChange)
      {
        //digitalWrite(2,HIGH); // SOLENOID ON
-       digitalWrite(4,HIGH);
+       digitalWrite(Green,HIGH);
      }
      else
      {
        //digitalWrite(2,LOW); // SOLENOID OFF
-       digitalWrite(4,LOW);
+       digitalWrite(Green,LOW);
      }
  
 }
